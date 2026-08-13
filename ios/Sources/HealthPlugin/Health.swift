@@ -1591,6 +1591,7 @@ final class Health {
                 completion(.failure(HealthManagerError.operationFailed("Aggregated queries are not supported for \(dataType.rawValue). Use readSamples instead.")))
                 return
             }
+            
 
             // Normalize to a de-duplicated, order-preserving list of aggregations, falling back to
             // the per-type default when none were requested.
