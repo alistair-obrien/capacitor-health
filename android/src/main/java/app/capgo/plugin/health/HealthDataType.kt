@@ -61,7 +61,10 @@ enum class HealthDataType(
     // record, so Android rejects it as an unsupported data type (same
     // precedent as exerciseTime / appleSleepingWristTemperature).
     HYDRATION("dietaryWater", HydrationRecord::class, "liter"),
-    DIETARY_ENERGY("dietaryEnergyConsumed", NutritionRecord::class, "kilocalorie");
+    DIETARY_ENERGY("dietaryEnergyConsumed", NutritionRecord::class, "kilocalorie"),
+    DIETARY_CARBOHYDRATES("dietaryCarbohydratesConsumed", NutritionRecord::class, "gram"),
+    DIETARY_FAT_TOTAL("dietaryFatConsumed", NutritionRecord::class, "gram"),
+    DIETARY_PROTEIN("dietaryProteinConsumed", NutritionRecord::class, "gram");
 
     val readPermission: String
         get() = HealthPermission.getReadPermission(recordClass)

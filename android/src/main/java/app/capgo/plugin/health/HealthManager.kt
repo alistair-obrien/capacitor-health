@@ -439,6 +439,50 @@ class HealthManager {
                     samples.add(record.startTime to payload)
                 }
             }
+            HealthDataType.DIETARY_CARBOHYDRATES -> readRecords(
+                client,
+                NutritionRecord::class,
+                startTime,
+                endTime,
+                limit
+            ) { record ->
+                record.totalCarbohydrate?.let { totalCarbohydrate ->
+                    val payload = createSamplePayload(
+                        dataType,
+                        record.startTime,
+                        record.endTime,
+                        totalCarbohydrate.inGrams,
+                        record.metadata
+                    )
+                    samples.add(record.startTime to payload)
+                }
+            }
+
+            HealthDataType.DIETARY_FAT_TOTAL -> readRecords(client, NutritionRecord::class, startTime, endTime, limit) { record ->
+                record.totalFat?.let { totalFat ->
+                    val payload = createSamplePayload(
+                        dataType,
+                        record.startTime,
+                        record.endTime,
+                        totalFat.inGrams,
+                        record.metadata
+                    )
+                    samples.add(record.startTime to payload)
+                }
+            }
+
+            HealthDataType.DIETARY_PROTEIN -> readRecords(client, NutritionRecord::class, startTime, endTime, limit) { record ->
+                record.protein?.let { protein ->
+                    val payload = createSamplePayload(
+                        dataType,
+                        record.startTime,
+                        record.endTime,
+                        protein.inGrams,
+                        record.metadata
+                    )
+                    samples.add(record.startTime to payload)
+                }
+            }
         }
 
         val sorted = samples.sortedBy { it.first }
@@ -735,6 +779,41 @@ class HealthManager {
                 )
                 client.insertRecords(listOf(record))
             }
+            HealthDataType.DIETARY_CARBOHYDRATES -> {
+                val record = NutritionRecord(
+                    startTime = startTime,
+                    startZoneOffset = zoneOffset(startTime),
+                    endTime = endTime,
+                    endZoneOffset = zoneOffset(endTime),
+                    totalCarbohydrate = Mass.grams(value),
+                    metadata = recordMetadata
+                )
+                client.insertRecords(listOf(record))
+            }
+
+            HealthDataType.DIETARY_FAT_TOTAL -> {
+                val record = NutritionRecord(
+                    startTime = startTime,
+                    startZoneOffset = zoneOffset(startTime),
+                    endTime = endTime,
+                    endZoneOffset = zoneOffset(endTime),
+                    totalFat = Mass.grams(value),
+                    metadata = recordMetadata
+                )
+                client.insertRecords(listOf(record))
+            }
+
+            HealthDataType.DIETARY_PROTEIN -> {
+                val record = NutritionRecord(
+                    startTime = startTime,
+                    startZoneOffset = zoneOffset(startTime),
+                    endTime = endTime,
+                    endZoneOffset = zoneOffset(endTime),
+                    protein = Mass.grams(value),
+                    metadata = recordMetadata
+                )
+                client.insertRecords(listOf(record))
+            }
         }
     }
 
@@ -808,15 +887,21 @@ private fun createSamplePayload(
             HealthDataType.DISTANCE,
             HealthDataType.CALORIES,
             HealthDataType.HYDRATION,
-            HealthDataType.DIETARY_ENERGY -> setOf("sum")
+            HealthDataType.DIETARY_ENERGY,
+            HealthDataType.DIETARY_CARBOHYDRATES,
+            HealthDataType.DIETARY_FAT_TOTAL,
+            HealthDataType.DIETARY_PROTEIN -> setOf("sum")
             HealthDataType.HEART_RATE,
             HealthDataType.WEIGHT,
             HealthDataType.RESTING_HEART_RATE -> setOf("average", "min", "max")
+
             else -> emptySet()
         }
 
         if (aggregation !in supportedAggregations) {
-            throw IllegalArgumentException("Unsupported aggregation '$aggregation' for ${dataType.identifier}")
+            throw IllegalArgumentException(
+                "Unsupported aggregation '$aggregation' for ${dataType.identifier}"
+            )
         }
     }
 
@@ -829,6 +914,9 @@ private fun createSamplePayload(
         HealthDataType.RESTING_HEART_RATE -> setOf(RestingHeartRateRecord.BPM_AVG, RestingHeartRateRecord.BPM_MAX, RestingHeartRateRecord.BPM_MIN)
         HealthDataType.HYDRATION -> setOf(HydrationRecord.VOLUME_TOTAL)
         HealthDataType.DIETARY_ENERGY -> setOf(NutritionRecord.ENERGY_TOTAL)
+        HealthDataType.DIETARY_CARBOHYDRATES -> setOf(NutritionRecord.TOTAL_CARBOHYDRATE_TOTAL)
+        HealthDataType.DIETARY_FAT_TOTAL -> setOf(NutritionRecord.TOTAL_FAT_TOTAL)
+        HealthDataType.DIETARY_PROTEIN -> setOf(NutritionRecord.PROTEIN_TOTAL)
         else -> throw IllegalArgumentException("Unsupported data type for aggregation: ${dataType.identifier}")
     }
 
@@ -857,6 +945,9 @@ private fun createSamplePayload(
             }
             HealthDataType.HYDRATION -> result[HydrationRecord.VOLUME_TOTAL]?.inLiters
             HealthDataType.DIETARY_ENERGY -> result[NutritionRecord.ENERGY_TOTAL]?.inKilocalories
+            HealthDataType.DIETARY_CARBOHYDRATES -> result[NutritionRecord.TOTAL_CARBOHYDRATE_TOTAL]?.inGrams
+            HealthDataType.DIETARY_FAT_TOTAL -> result[NutritionRecord.TOTAL_FAT_TOTAL]?.inGrams
+            HealthDataType.DIETARY_PROTEIN -> result[NutritionRecord.PROTEIN_TOTAL]?.inGrams
             else -> null
         }
     }

@@ -582,6 +582,9 @@ enum HealthDataType: String, CaseIterable {
     case appleStandHour
     case dietaryWater
     case dietaryEnergyConsumed
+    case dietaryCarbohydratesConsumed
+    case dietaryFatConsumed
+    case dietaryProteinConsumed
 
     func sampleType() throws -> HKSampleType {
         switch self {
@@ -663,6 +666,12 @@ enum HealthDataType: String, CaseIterable {
             identifier = .dietaryWater
         case .dietaryEnergyConsumed:
             identifier = .dietaryEnergyConsumed
+        case .dietaryCarbohydratesConsumed:
+            identifier = .dietaryCarbohydrates
+        case .dietaryFatConsumed:
+            identifier = .dietaryFatTotal
+        case .dietaryProteinConsumed:
+            identifier = .dietaryProtein
         case .sleep:
             throw HealthManagerError.invalidDataType("Sleep is a category type, not a quantity type")
         case .bloodPressure:
@@ -730,6 +739,11 @@ enum HealthDataType: String, CaseIterable {
             return HKUnit.liter()
         case .dietaryEnergyConsumed:
             return HKUnit.kilocalorie()
+
+        case .dietaryCarbohydratesConsumed,
+            .dietaryFatConsumed,
+            .dietaryProteinConsumed:
+            return HKUnit.gram()
         }
     }
 
@@ -781,6 +795,10 @@ enum HealthDataType: String, CaseIterable {
             return "liter"
         case .dietaryEnergyConsumed:
             return "kilocalorie"
+        case .dietaryCarbohydratesConsumed,
+             .dietaryFatConsumed,
+             .dietaryProteinConsumed:
+            return "gram"
         }
     }
 
@@ -1556,7 +1574,14 @@ final class Health {
             let supportedAggregations: Set<String>
             let defaultAggregation: String
             switch dataType {
-            case .steps, .distance, .calories, .dietaryWater, .dietaryEnergyConsumed:
+            case .steps,
+                .distance,
+                .calories,
+                .dietaryWater,
+                .dietaryEnergyConsumed,
+                .dietaryCarbohydratesConsumed,
+                .dietaryFatConsumed,
+                .dietaryProteinConsumed:
                 supportedAggregations = ["sum"]
                 defaultAggregation = "sum"
             case .heartRate, .weight, .restingHeartRate:

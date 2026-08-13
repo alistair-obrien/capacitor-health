@@ -26,6 +26,9 @@ export type HealthDataType =
   | 'appleStandHour'
   | 'dietaryWater'
   | 'dietaryEnergyConsumed'
+  | 'dietaryCarbohydratesConsumed'
+  | 'dietaryFatConsumed'
+  | 'dietaryProteinConsumed'
   | 'workouts';
 
 export type HealthUnit =
@@ -33,6 +36,7 @@ export type HealthUnit =
   | 'meter'
   | 'kilocalorie'
   | 'bpm'
+  | 'gram'
   | 'kilogram'
   | 'minute'
   | 'percent'
