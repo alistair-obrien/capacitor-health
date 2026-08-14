@@ -183,13 +183,19 @@ class HealthPlugin : Plugin() {
 
     @PluginMethod
     fun readSamples(call: PluginCall) {
+        Log.d(TAG, "=== JS readSamples ENTERED ===")
+
         val identifier = call.getString("dataType")
+        Log.d(TAG, "dataType=$identifier")
+
         if (identifier.isNullOrBlank()) {
             call.reject("dataType is required")
             return
         }
 
         val dataType = HealthDataType.from(identifier)
+        Log.d(TAG, "resolved dataType=$dataType")
+
         if (dataType == null) {
             call.reject("Unsupported data type: $identifier")
             return
@@ -198,19 +204,29 @@ class HealthPlugin : Plugin() {
         val limit = (call.getInt("limit") ?: DEFAULT_LIMIT).coerceAtLeast(0)
         val ascending = call.getBoolean("ascending") ?: false
 
+        Log.d(TAG, "limit=$limit ascending=$ascending")
+
         val startInstant = try {
-            manager.parseInstant(call.getString("startDate"), Instant.now().minus(DEFAULT_PAST_DURATION))
+            manager.parseInstant(
+                call.getString("startDate"),
+                Instant.now().minus(DEFAULT_PAST_DURATION)
+            )
         } catch (e: DateTimeParseException) {
             call.reject(e.message, null, e)
             return
         }
 
         val endInstant = try {
-            manager.parseInstant(call.getString("endDate"), Instant.now())
+            manager.parseInstant(
+                call.getString("endDate"),
+                Instant.now()
+            )
         } catch (e: DateTimeParseException) {
             call.reject(e.message, null, e)
             return
         }
+
+        Log.d(TAG, "start=$startInstant end=$endInstant")
 
         if (endInstant.isBefore(startInstant)) {
             call.reject("endDate must be greater than or equal to startDate")
@@ -218,13 +234,41 @@ class HealthPlugin : Plugin() {
         }
 
         call.launchSafely {
+            Log.d(TAG, "=== ENTERED readSamples COROUTINE ===")
+
             val client = getClientOrReject(this) ?: return@launchSafely
+
+            Log.d(TAG, "=== GOT HEALTH CONNECT CLIENT ===")
+
             try {
-                val samples = manager.readSamples(client, dataType, startInstant, endInstant, limit, ascending)
-                val result = JSObject().apply { put("samples", samples) }
+                Log.d(TAG, "=== CALLING HealthManager.readSamples ===")
+
+                val samples = manager.readSamples(
+                    client,
+                    dataType,
+                    startInstant,
+                    endInstant,
+                    limit,
+                    ascending
+                )
+
+                Log.d(TAG, "=== HealthManager.readSamples RETURNED ===")
+
+                val result = JSObject().apply {
+                    put("samples", samples)
+                }
+
                 resolve(result)
+
+                Log.d(TAG, "=== readSamples RESOLVED ===")
             } catch (e: Exception) {
-                reject(e.message ?: "Failed to read samples.", null, e)
+                Log.e(TAG, "=== readSamples FAILED ===", e)
+
+                reject(
+                    e.message ?: "Failed to read samples.",
+                    null,
+                    e
+                )
             }
         }
     }
