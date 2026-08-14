@@ -164,6 +164,20 @@ class HealthManager {
         limit: Int,
         ascending: Boolean
     ): JSArray {
+
+        android.util.Log.d(
+            "Health Manager Plugin Read Samples"
+        )
+
+        android.util.Log.d(
+            "HealthManager",
+            "readSamples: dataType=${dataType.identifier}, " +
+                "start=$startTime, " +
+                "end=$endTime, " +
+                "limit=$limit, " +
+                "ascending=$ascending"
+        )
+
         val samples = mutableListOf<Pair<Instant, JSObject>>()
         when (dataType) {
             HealthDataType.STEPS -> readRecords(client, StepsRecord::class, startTime, endTime, limit) { record ->
