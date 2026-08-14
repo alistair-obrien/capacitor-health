@@ -166,7 +166,8 @@ class HealthManager {
     ): JSArray {
 
         android.util.Log.d(
-            "Health Manager Plugin Read Samples"
+            "HealthManager",
+            "=== readSamples CALLED ==="
         )
 
         android.util.Log.d(
